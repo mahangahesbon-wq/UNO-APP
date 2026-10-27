@@ -4,21 +4,23 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#00ff66" />
-  <meta name="description" content="UNO football striker game" />
-  <title>UNO_APP</title>
+  <meta name="description" content="Konami-inspired UNO football striker game" />
+  <title>KONAMI UNO FOOTBALL</title>
   <link rel="manifest" href="./manifest.json" />
   <link rel="icon" href="./icon.svg" type="image/svg+xml" />
   <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
   <style>
     :root {
-      --bg: #0b0c10;
-      --panel: #111424;
-      --accent: #00ff66;
-      --accent-2: #00f0ff;
-      --danger: #ff0055;
-      --gold: #ffb700;
-      --text: #ffffff;
-      --dark: #06110d;
+      --bg: #05070d;
+      --panel: #111824;
+      --accent: #39ff14;
+      --accent-2: #00d2ff;
+      --danger: #ff2d75;
+      --gold: #ffd75f;
+      --text: #e9f5ff;
+      --dark: #111111;
+      --shadow: rgba(57, 255, 20, 0.35);
+      --scan: rgba(255,255,255,0.06);
     }
 
     * { box-sizing: border-box; }
@@ -26,9 +28,11 @@
     html, body {
       margin: 0;
       min-height: 100vh;
-      background: radial-gradient(circle at top, #16213d, var(--bg) 46%);
+      background:
+        radial-gradient(circle at top, rgba(0, 255, 140, 0.12), transparent 30%),
+        linear-gradient(180deg, #05070d, #0a1018 50%, #05070d);
       color: var(--text);
-      font-family: 'Segoe UI', Roboto, sans-serif;
+      font-family: 'Segoe UI', 'Trebuchet MS', sans-serif;
     }
 
     body {
@@ -38,21 +42,38 @@
     }
 
     .app {
-      width: min(100%, 900px);
-      background: linear-gradient(135deg, var(--panel), #06070d);
+      width: min(100%, 940px);
+      background: linear-gradient(180deg, rgba(17,24,36,0.98), rgba(8,11,18,0.96));
       border: 3px solid var(--accent);
-      border-radius: 20px;
-      box-shadow: 0 0 28px rgba(0, 255, 102, 0.25);
+      border-radius: 12px;
+      box-shadow: 0 0 30px var(--shadow), inset 0 0 18px rgba(0,255,140,0.08);
       overflow: hidden;
+      position: relative;
+    }
+
+    .app::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(
+        to bottom,
+        rgba(255,255,255,0.03),
+        rgba(255,255,255,0.03) 2px,
+        transparent 2px,
+        transparent 4px
+      );
+      pointer-events: none;
     }
 
     .topbar {
+      position: relative;
+      z-index: 1;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 14px 18px;
-      background: rgba(18, 21, 35, 0.95);
-      border-bottom: 2px solid rgba(255,255,255,0.08);
+      padding: 10px 16px;
+      background: rgba(10, 16, 24, 0.9);
+      border-bottom: 2px solid rgba(57,255,20,0.3);
       gap: 12px;
     }
 
@@ -60,20 +81,25 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      font-weight: 700;
-      min-width: 120px;
+      font-family: 'Verdana', sans-serif;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-weight: 900;
+      font-size: 0.92rem;
+      min-width: 140px;
     }
 
-    .brand span:first-child {
-      color: var(--accent);
-    }
+    .brand .green { color: var(--accent); }
+    .brand .blue { color: var(--accent-2); }
 
     .score {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 14px;
+      font-family: 'Verdana', sans-serif;
       font-weight: 800;
       white-space: nowrap;
+      letter-spacing: 0.06em;
     }
 
     .score strong {
@@ -93,26 +119,41 @@
     }
 
     button {
-      border: none;
-      border-radius: 9px;
-      padding: 10px 16px;
-      font-size: 0.95rem;
+      border: 2px solid rgba(255,255,255,0.15);
+      border-radius: 8px;
+      padding: 9px 14px;
+      font-size: 0.82rem;
       font-weight: 800;
       cursor: pointer;
-      transition: transform 0.15s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+      background: #1a2437;
+      color: var(--text);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
     }
 
-    button:hover { transform: translateY(-1px); }
+    button:hover {
+      transform: translateY(-1px);
+      border-color: rgba(57,255,20,0.5);
+      box-shadow: 0 0 12px rgba(57,255,20,0.18);
+    }
 
-    #startBtn { background: var(--accent); color: #07150d; }
-    #resetBtn { background: #2f385a; color: white; }
+    #startBtn { background: var(--accent); color: #08160d; border-color: var(--accent); }
+    #resetBtn { background: #2b3a4e; color: #fff; }
     #toggleAudio {
-      background: #1e1f38;
+      background: #1d1e38;
       color: var(--gold);
-      border: 1px solid var(--gold);
+      border-color: var(--gold);
     }
+    #hostBtn { background: #00c6ff; color: #051826; border-color: #00c6ff; }
+    #joinBtn { background: #ffb700; color: #1d1200; border-color: #ffb700; }
+    #connectBtn { background: #17d673; color: #052b17; border-color: #17d673; }
+    #copyCodeBtn { background: #3d4a7a; color: white; border-color: #3d4a7a; }
 
     .multiplayer-panel {
+      position: relative;
+      z-index: 1;
       padding: 10px 14px 0;
       display: flex;
       flex-direction: column;
@@ -127,47 +168,34 @@
     }
 
     .multiplayer-row input {
-      min-width: 170px;
+      min-width: 180px;
       flex: 1;
       padding: 10px 12px;
-      border-radius: 8px;
-      border: 1px solid #3a446c;
-      background: rgba(18, 21, 35, 0.9);
+      border: 1px solid rgba(57,255,20,0.35);
+      background: rgba(10, 16, 24, 0.9);
       color: white;
+      border-radius: 8px;
       outline: none;
+      font-size: 0.9rem;
+      letter-spacing: 0.05em;
     }
 
     .multiplayer-row input::placeholder {
       color: #9aa4d2;
     }
 
-    #hostBtn {
-      background: #00c6ff;
-      color: #051826;
-    }
-
-    #joinBtn {
-      background: #ffb700;
-      color: #1d1200;
-    }
-
-    #connectBtn {
-      background: #17d673;
-      color: #052b17;
-    }
-
-    #copyCodeBtn {
-      background: #3d4a7a;
-      color: white;
-    }
-
     #connectionStatus {
-      font-size: 0.9rem;
-      color: #dfe7ff;
+      font-size: 0.82rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted, #dfe7ff);
       min-height: 20px;
+      font-weight: 700;
     }
 
     .stats {
+      position: relative;
+      z-index: 1;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -177,26 +205,30 @@
       font-size: 0.9rem;
       font-weight: 700;
       padding: 8px 14px 0;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
     }
 
-    .game-shell { padding: 14px; }
+    .game-shell { padding: 14px; position: relative; z-index: 1; }
 
     canvas {
       display: block;
       width: 100%;
       max-width: 100%;
       aspect-ratio: 16 / 10;
-      border-radius: 14px;
+      border-radius: 12px;
       background: linear-gradient(#0d4d2e, #0d762f 60%, #0d4d2e);
-      border: 2px solid rgba(255,255,255,0.12);
+      border: 3px solid rgba(57,255,20,0.8);
+      box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.3), 0 0 18px rgba(57,255,20,0.18);
+      image-rendering: pixelated;
     }
 
     .status {
       margin-top: 12px;
       min-height: 55px;
-      background: rgba(27, 30, 48, 0.96);
+      background: rgba(7, 12, 18, 0.95);
       border: 2px solid var(--accent-2);
-      border-radius: 10px;
+      border-radius: 8px;
       padding: 10px 12px;
       text-align: center;
       color: var(--accent-2);
@@ -205,6 +237,9 @@
       align-items: center;
       justify-content: center;
       line-height: 1.4;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      box-shadow: inset 0 0 12px rgba(0,210,255,0.12);
     }
 
     .touch-controls {
@@ -213,6 +248,8 @@
       gap: 12px;
       margin-top: 12px;
       flex-wrap: wrap;
+      position: relative;
+      z-index: 1;
     }
 
     .touch-pad {
@@ -224,15 +261,15 @@
     .touch-btn {
       width: 48px;
       height: 48px;
-      background: #242a46;
-      border: 2px solid #5374c7;
+      background: #202d41;
+      border: 2px solid #5d8cff;
       color: white;
-      font-size: 1.1rem;
       border-radius: 10px;
       padding: 0;
       display: grid;
       place-items: center;
       user-select: none;
+      font-size: 1.1rem;
     }
 
     #shootBtn {
@@ -240,11 +277,11 @@
       height: 92px;
       border-radius: 50%;
       background: linear-gradient(135deg, var(--danger), #ff6b7a);
-      border: 3px solid rgba(255,255,255,0.3);
-      box-shadow: 0 0 24px rgba(255, 0, 85, 0.35);
+      border: 3px solid rgba(255,255,255,0.25);
+      box-shadow: 0 0 24px rgba(255, 45, 117, 0.25);
       color: white;
       font-weight: 800;
-      font-size: 1rem;
+      font-size: 0.9rem;
     }
 
     .install-banner {
@@ -273,7 +310,7 @@
 <body>
   <div class="app">
     <div class="topbar">
-      <div class="brand"><span>UNO</span> <span>FOOTBALL</span></div>
+      <div class="brand"><span class="green">KONAMI</span> <span class="blue">GOAL</span></div>
       <div class="score">
         <span><strong>KENYA</strong> <span id="homeScore">0</span></span>
         <span class="away"><span id="awayScore">0</span> <strong>BOT</strong></span>
@@ -299,11 +336,12 @@
     <div class="stats">
       <div>Clock: <span id="timerText">90</span>s</div>
       <div>Difficulty: <span id="difficultyText">Normal</span></div>
+      <div>Mode: <span id="modeText">Offline</span></div>
     </div>
 
     <div class="game-shell">
-      <canvas id="pitchCanvas" width="800" height="500" aria-label="UNO football game area"></canvas>
-      <div id="statusText" class="status">🎤 Ready for kickoff. Use arrow keys or the on-screen controls to attack.</div>
+      <canvas id="pitchCanvas" width="800" height="500" aria-label="Konami styled football game"></canvas>
+      <div id="statusText" class="status">🎮 KONAMI MODE READY — Use arrow keys or on-screen controls.</div>
     </div>
 
     <div class="touch-controls">
@@ -332,6 +370,7 @@
     const awayScoreEl = document.getElementById('awayScore');
     const timerText = document.getElementById('timerText');
     const difficultyText = document.getElementById('difficultyText');
+    const modeText = document.getElementById('modeText');
     const startBtn = document.getElementById('startBtn');
     const resetBtn = document.getElementById('resetBtn');
     const toggleAudioBtn = document.getElementById('toggleAudio');
@@ -347,7 +386,8 @@
 
     const FIELD = { width: canvas.width, height: canvas.height };
     const keys = {};
-
+    const localStorageKey = 'konami_uno_game_v1';
+    const konamiSequence = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
     const state = {
       running: false,
       timer: 90,
@@ -363,7 +403,10 @@
       conn: null,
       roomCode: null,
       role: 'solo',
-      syncedAt: 0
+      syncedAt: 0,
+      konamiActive: false,
+      konamiIndex: 0,
+      mode: 'offline'
     };
 
     const player = {
@@ -378,8 +421,7 @@
       x: FIELD.width - 110,
       y: FIELD.height / 2,
       radius: 16,
-      speed: 5.3,
-      color: '#ff0055'
+      color: '#ff2d75'
     };
 
     const opponent = {
@@ -387,7 +429,7 @@
       y: FIELD.height / 2,
       radius: 16,
       speed: 3.6,
-      color: '#ff0055'
+      color: '#ff2d75'
     };
 
     const ball = {
@@ -406,12 +448,43 @@
       statusText.textContent = message;
     }
 
+    function setMode(mode) {
+      state.mode = mode;
+      modeText.textContent = mode === 'online' ? 'Online' : 'Offline';
+      setConnectionStatus(mode === 'online' ? 'Online mode active' : 'Offline mode: local match only');
+    }
+
     function renderScore() {
       homeScoreEl.textContent = state.homeScore;
       awayScoreEl.textContent = state.awayScore;
       timerText.textContent = Math.max(0, Math.ceil(state.timer));
-      const difficultyLabel = state.difficulty >= 2 ? 'Hard' : state.difficulty >= 1.5 ? 'Medium' : 'Normal';
-      difficultyText.textContent = difficultyLabel;
+
+      if (state.difficulty >= 2.2) difficultyText.textContent = 'Hard';
+      else if (state.difficulty >= 1.5) difficultyText.textContent = 'Medium';
+      else difficultyText.textContent = 'Normal';
+
+      modeText.textContent = state.remoteMode ? 'Online' : 'Offline';
+    }
+
+    function saveProgress() {
+      localStorage.setItem(localStorageKey, JSON.stringify({
+        homeScore: state.homeScore,
+        awayScore: state.awayScore,
+        timer: state.timer,
+        mode: state.remoteMode ? 'online' : 'offline'
+      }));
+    }
+
+    function restoreProgress() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(localStorageKey) || '{}');
+        if (saved.homeScore != null) state.homeScore = saved.homeScore;
+        if (saved.awayScore != null) state.awayScore = saved.awayScore;
+        if (saved.timer != null) state.timer = saved.timer;
+        if (saved.mode === 'online') state.remoteMode = true;
+      } catch (err) {
+        console.warn('Could not restore state', err);
+      }
     }
 
     function resetBall() {
@@ -438,19 +511,18 @@
       state.awayScore = 0;
       state.winner = null;
       startBtn.textContent = 'Match Kickoff';
-      setStatus('🎤 Ready for kickoff. Use arrow keys or the on-screen controls to attack.');
+      setStatus('🎤 READY — Enter the field.');
       renderScore();
       resetPositions();
+      saveProgress();
       sendPeerMessage({ type: 'reset' });
     }
 
     function startMatch() {
-      if (state.winner) {
-        state.winner = null;
-      }
+      if (state.winner) state.winner = null;
       state.running = !state.running;
       if (state.running) {
-        setStatus('🚀 Kickoff! Press space or tap SHOOT to strike.');
+        setStatus(state.konamiActive ? '🔥 KONAMI MODE ACTIVE — SPEED BOOST ON!' : '🚀 Kickoff! Press space or tap SHOOT to strike.');
         startBtn.textContent = 'Pause Match';
         sendPeerMessage({ type: 'start' });
       } else {
@@ -463,6 +535,7 @@
       const elapsed = 90 - state.timer;
       state.difficulty = 1 + Math.min(2.5, elapsed / 36);
       opponent.speed = 3.5 + state.difficulty * 0.8;
+      player.speed = state.konamiActive ? 7.4 : 5.3;
     }
 
     function clamp(value, min, max) {
@@ -480,8 +553,9 @@
 
       if (dx !== 0 || dy !== 0) {
         const length = Math.hypot(dx, dy) || 1;
-        player.x += (dx / length) * player.speed;
-        player.y += (dy / length) * player.speed;
+        const boost = state.konamiActive ? 1.55 : 1;
+        player.x += (dx / length) * player.speed * boost;
+        player.y += (dy / length) * player.speed * boost;
       }
 
       player.x = clamp(player.x, 28, FIELD.width - 28);
@@ -494,10 +568,11 @@
       const dx = targetX - opponent.x;
       const dy = targetY - opponent.y;
       const dist = Math.hypot(dx, dy) || 1;
+      const turbo = state.konamiActive ? 1.25 : 1;
 
       if (dist > 10) {
-        opponent.x += (dx / dist) * opponent.speed;
-        opponent.y += (dy / dist) * opponent.speed;
+        opponent.x += (dx / dist) * opponent.speed * turbo;
+        opponent.y += (dy / dist) * opponent.speed * turbo;
       }
 
       opponent.x = clamp(opponent.x, FIELD.width * 0.55, FIELD.width - 28);
@@ -516,9 +591,7 @@
       if (data.type === 'player') {
         remotePlayer.x = data.x;
         remotePlayer.y = data.y;
-        if (data.shoot) {
-          shootBallForRemote();
-        }
+        if (data.shoot) shootBallForRemote();
       }
 
       if (data.type === 'score') {
@@ -527,17 +600,9 @@
         renderScore();
       }
 
-      if (data.type === 'reset') {
-        resetGame();
-      }
-
-      if (data.type === 'start') {
-        if (!state.running) startMatch();
-      }
-
-      if (data.type === 'shoot') {
-        shootBallForRemote();
-      }
+      if (data.type === 'reset') resetGame();
+      if (data.type === 'start' && !state.running) startMatch();
+      if (data.type === 'shoot') shootBallForRemote();
     }
 
     function shootBall(strengthBoost = 1) {
@@ -546,7 +611,7 @@
       const dist = Math.hypot(dx, dy) || 1;
 
       if (dist < player.radius + ball.radius + 25) {
-        const power = 6.8 * strengthBoost;
+        const power = (state.konamiActive ? 9.2 : 6.8) * strengthBoost;
         ball.vx = (dx / dist) * power + 1.2;
         ball.vy = (dy / dist) * power;
         sendPeerMessage({ type: 'shoot' });
@@ -563,14 +628,14 @@
     function handleBallGoal() {
       if (ball.x - ball.radius <= 0) {
         state.awayScore += 1;
-        setStatus('🎉 Bot scores! The keeper is beaten.');
+        setStatus('🎉 BOT SCORES!');
         sendPeerMessage({ type: 'score', homeScore: state.homeScore, awayScore: state.awayScore });
         resetBall();
       }
 
       if (ball.x + ball.radius >= FIELD.width) {
         state.homeScore += 1;
-        setStatus('⚽ Kenya scores! Brilliant finish!');
+        setStatus('⚽ KENYA SCORES!');
         sendPeerMessage({ type: 'score', homeScore: state.homeScore, awayScore: state.awayScore });
         resetBall();
       }
@@ -595,9 +660,9 @@
       const pDist = Math.hypot(pDx, pDy);
       if (pDist < player.radius + ball.radius) {
         const angle = Math.atan2(pDy, pDx);
-        const impact = 1.4;
-        ball.vx = Math.cos(angle) * 7.5 * impact;
-        ball.vy = Math.sin(angle) * 7.5 * impact;
+        const impact = state.konamiActive ? 1.7 : 1.35;
+        ball.vx = Math.cos(angle) * 7.8 * impact;
+        ball.vy = Math.sin(angle) * 7.8 * impact;
       }
 
       const oDx = ball.x - opponent.x;
@@ -605,29 +670,24 @@
       const oDist = Math.hypot(oDx, oDy);
       if (oDist < opponent.radius + ball.radius) {
         const angle = Math.atan2(oDy, oDx);
-        ball.vx = Math.cos(angle) * 7.2;
-        ball.vy = Math.sin(angle) * 7.2;
+        ball.vx = Math.cos(angle) * 7.3;
+        ball.vy = Math.sin(angle) * 7.3;
       }
 
-      if (Math.random() < 0.015 && state.running && !state.remoteMode) {
+      if (!state.remoteMode && Math.random() < 0.02) {
         const tdx = ball.x - opponent.x;
         const tdy = ball.y - opponent.y;
         if (Math.abs(tdx) < 140 && Math.abs(tdy) < 90) {
-          ball.vx += (ball.x < FIELD.width / 2 ? 1 : -1) * 0.15;
+          ball.vx += (ball.x < FIELD.width / 2 ? 1 : -1) * 0.18;
         }
       }
     }
 
-    function updateRemotePlayer() {
+    function updateRemoteState() {
       if (!state.remoteMode || !state.conn || !state.conn.open) return;
-      if (performance.now() - state.syncedAt > 90) {
+      if (performance.now() - state.syncedAt > 80) {
         state.syncedAt = performance.now();
-        sendPeerMessage({
-          type: 'player',
-          x: player.x,
-          y: player.y,
-          shoot: keys[' '] || keys.Space
-        });
+        sendPeerMessage({ type: 'player', x: player.x, y: player.y, shoot: !!keys.Space });
       }
     }
 
@@ -642,32 +702,35 @@
         state.timer = 0;
         if (state.homeScore > state.awayScore) {
           state.winner = 'KENYA';
-          setStatus('🏆 Full time: Kenya wins the match!');
+          setStatus('🏆 FULL TIME: KENYA WINS!');
         } else if (state.awayScore > state.homeScore) {
           state.winner = 'BOT';
-          setStatus('🏆 Full time: Bot wins the match.');
+          setStatus('🏆 FULL TIME: BOT WINS!');
         } else {
           state.winner = 'DRAW';
-          setStatus('🤝 Full time: it ends level.');
+          setStatus('🤝 FULL TIME: DRAW GAME');
         }
         startBtn.textContent = 'Play Again';
       }
 
       movePlayer();
-      if (!state.remoteMode) {
-        moveOpponentAI();
-      } else {
+
+      if (state.remoteMode && state.conn && state.conn.open) {
         opponent.x = remotePlayer.x;
         opponent.y = remotePlayer.y;
-        updateRemotePlayer();
+        updateRemoteState();
+      } else {
+        moveOpponentAI();
       }
+
       updateBall();
       renderScore();
+      saveProgress();
     }
 
     function drawField() {
       ctx.clearRect(0, 0, FIELD.width, FIELD.height);
-      ctx.fillStyle = '#0d4d2e';
+      ctx.fillStyle = '#0c401d';
       ctx.fillRect(0, 0, FIELD.width, FIELD.height);
 
       ctx.strokeStyle = 'rgba(255,255,255,0.85)';
@@ -695,16 +758,6 @@
       ctx.fillStyle = '#f4f5f7';
       ctx.fillRect(20, 210, 18, 80);
       ctx.fillRect(FIELD.width - 38, 210, 18, 80);
-
-      ctx.strokeStyle = 'rgba(255,255,255,0.5)';
-      ctx.beginPath();
-      ctx.moveTo(20, 18);
-      ctx.lineTo(20, FIELD.height - 18);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(FIELD.width - 20, 18);
-      ctx.lineTo(FIELD.width - 20, FIELD.height - 18);
-      ctx.stroke();
     }
 
     function drawPlayerSprite(x, y, color, label) {
@@ -727,14 +780,14 @@
       ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
       ctx.fill();
 
-      ctx.strokeStyle = '#ff0055';
+      ctx.strokeStyle = '#ff2d75';
       ctx.lineWidth = 3;
       ctx.stroke();
     }
 
     function drawCenterMessage() {
       if (state.running) return;
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.28)';
+      ctx.fillStyle = 'rgba(0,0,0,0.28)';
       ctx.fillRect(0, 0, FIELD.width, FIELD.height);
       ctx.fillStyle = '#ffffff';
       ctx.font = '700 26px Segoe UI';
@@ -748,7 +801,9 @@
     function render() {
       drawField();
       drawPlayerSprite(player.x, player.y, player.color, 'player');
-      drawPlayerSprite(state.remoteMode ? remotePlayer.x : opponent.x, state.remoteMode ? remotePlayer.y : opponent.y, state.remoteMode ? '#ff0055' : opponent.color, 'bot');
+      const enemyX = state.remoteMode ? remotePlayer.x : opponent.x;
+      const enemyY = state.remoteMode ? remotePlayer.y : opponent.y;
+      drawPlayerSprite(enemyX, enemyY, '#ff2d75', 'bot');
       drawBall();
       drawCenterMessage();
     }
@@ -759,6 +814,28 @@
       updateMatch(delta);
       render();
       requestAnimationFrame(gameLoop);
+    }
+
+    function detectKonamiCode(eventKey) {
+      const expected = konamiSequence[state.konamiIndex];
+      const key = eventKey.length === 1 ? eventKey.toLowerCase() : eventKey;
+      const value = (key === 'b' || key === 'a') ? key.toLowerCase() : eventKey;
+
+      if (value === expected) {
+        state.konamiIndex += 1;
+        if (state.konamiIndex === konamiSequence.length) {
+          state.konamiActive = !state.konamiActive;
+          state.konamiIndex = 0;
+          if (state.konamiActive) {
+            setStatus('🔥 KONAMI MODE ACTIVATED — TURBO BOOST ENABLED');
+            setConnectionStatus('CHEAT MODE: Turbo boost online');
+          } else {
+            setStatus('💠 KONAMI MODE OFF — BACK TO NORMAL');
+          }
+        }
+      } else {
+        state.konamiIndex = 0;
+      }
     }
 
     function setupConnection(connection) {
@@ -776,13 +853,13 @@
         state.remoteMode = false;
         state.conn = null;
         setConnectionStatus('Disconnected: back to local match mode');
-        setStatus('🔌 Connection dropped. Back to solo play.');
+        setStatus('🔌 Connection lost. Solo mode restored.');
       });
     }
 
     function createPeer() {
       if (!window.Peer) {
-        setConnectionStatus('PeerJS unavailable. Internet multiplayer is currently disabled.');
+        setConnectionStatus('PeerJS unavailable. Internet multiplayer is disabled.');
         return;
       }
 
@@ -792,14 +869,14 @@
         host: '0.peerjs.com',
         port: 443,
         secure: true,
-        path: '/' 
+        path: '/'
       });
 
       state.peer.on('open', (id) => {
         state.roomCode = id;
         state.role = 'host';
         setConnectionStatus(`Room ready: ${id} — share this code with a friend`);
-        setStatus('🎮 Room created. Share the code and invite your family or friends.');
+        setStatus('🎮 Room created. Share the code and invite friends or family.');
       });
 
       state.peer.on('connection', (conn) => {
@@ -813,16 +890,15 @@
     }
 
     hostBtn.addEventListener('click', () => {
+      state.remoteMode = true;
+      setMode('online');
       createPeer();
-      if (state.peer && !state.conn) {
-        state.role = 'host';
-      }
     });
 
     joinBtn.addEventListener('click', () => {
-      state.role = 'guest';
-      createPeer();
-      setConnectionStatus('Join mode enabled — enter the host code and connect');
+      state.remoteMode = true;
+      setMode('online');
+      setConnectionStatus('Join mode enabled — enter host code and click Connect');
     });
 
     connectBtn.addEventListener('click', () => {
@@ -833,8 +909,8 @@
       }
       if (!state.peer) createPeer();
       const conn = state.peer.connect(code, { metadata: { role: 'guest' } });
-      setupConnection(conn);
       state.roomCode = code;
+      setupConnection(conn);
       setConnectionStatus(`Connecting to room: ${code}`);
     });
 
@@ -848,7 +924,7 @@
         await navigator.clipboard.writeText(state.roomCode);
         setConnectionStatus(`Room code copied: ${state.roomCode}`);
       } catch (err) {
-        setConnectionStatus(`Copy failed. Share this code manually: ${state.roomCode}`);
+        setConnectionStatus(`Copy failed. Share manually: ${state.roomCode}`);
       }
     });
 
@@ -877,8 +953,10 @@
 
     document.addEventListener('keydown', (event) => {
       const key = event.key.length === 1 ? event.key.toLowerCase() : event.key;
-      keys[key] = true;
       keys[event.key] = true;
+      keys[key] = true;
+
+      detectKonamiCode(event.key);
 
       if (event.code === 'Space') {
         event.preventDefault();
@@ -888,8 +966,8 @@
 
     document.addEventListener('keyup', (event) => {
       const key = event.key.length === 1 ? event.key.toLowerCase() : event.key;
-      keys[key] = false;
       keys[event.key] = false;
+      keys[key] = false;
     });
 
     document.querySelectorAll('.touch-btn').forEach((btn) => {
@@ -934,6 +1012,7 @@
       state.installPrompt = null;
     });
 
+    restoreProgress();
     resetGame();
     renderScore();
     render();
