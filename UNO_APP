@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>UNO Football striker Pro: World Cup Anthems</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
+        body {
+            background-color: #0b0c10;
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 10px;
+            overflow-x: hidden;
+        }
+        #game-wrapper { width: 100%; max-width: 800px; position: relative; }
+        
+        #menu-screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #111424 0%, #06070d 100%);
+            border: 3px solid #00ff66; border-radius: 12px;
+            z-index: 10; display: flex; flex-direction: column;
+            padding: 15px; box-shadow: 0 0 30px rgba(0, 255, 102, 0.2);
+            overflow-y: auto;
+        }
+        h1 { font-size: 22px; color: #00ff66; text-align: center; margin-bottom: 5px; text-transform: uppercase; }
+        .tab-bar { display: flex; gap: 5px; margin-bottom: 12px; }
+        .tab-btn {
+            flex: 1; padding: 8px; background: #1b2035; border: 1px solid #343b5c;
+            color: #a0a5c0; font-weight: bold; font-size: 11px; text-transform: uppercase; border-radius: 4px;
+            text-align: center; cursor: pointer;
+        }
+        .tab-btn.active { background: #00ff66; color: #000; border-color: #00ff66; }
+        
+        .view-panel { display: none; width: 100%; }
+        .view-panel.active { display: block; }
+        
+        .item-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 10px; }
+        .item-card {
+            background: #161a2e; border: 2px solid #282f4d; border-radius: 6px;
+            padding: 10px; text-align: center; position: relative; cursor: pointer;
+        }
+        .item-card.selected { border-color: #00ff66; background: #112720; }
+        .item-card.locked { opacity: 0.75; border-style: dashed; }
+        .badge { position: absolute; top: 4px; right: 4px; background: #ff0055; font-size: 8px; padding: 2px 4px; border-radius: 4px; font-weight: bold;}
+        .card-title { font-weight: bold; font-size: 13px; color: #fff; margin-bottom: 2px; }
+        .card-desc { font-size: 10px; color: #8a8dbe; margin-bottom: 4px; }
+        .card-price { font-size: 11px; color: #ffb700; font-weight: bold; }
+        
+        .bottom-ui { display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 10px; border-top: 1px solid #282f4d; }
+        .currency-box { font-weight: bold; font-size: 14px; color: #ffb700; }
+        .action-btns { display: flex; gap: 8px; }
+        button.game-btn {
+            padding: 10px 20px; font-size: 13px; font-weight: bold; text-transform: uppercase;
+            border: none; border-radius: 4px; cursor: pointer;
+        }
+        #kickoff-btn { background: #00ff66; color: #000; }
+        #buy-btn { background: #ffb700; color: #000; display: none; }
+
+        #canvas-container { position: relative; width: 100%; aspect-ratio: 16 / 10; border-radius: 12px; overflow: hidden; border: 3px solid #343b5c; }
+        canvas { display: block; background: #0f111a; width: 100%; height: 100%; }
+        #scoreboard {
+            width: 100%; display: flex; justify-content: space-between; align-items: center;
+            padding: 8px 12px; background: #141622; border: 2px solid #343b5c; border-bottom: none;
+            border-top-left-radius: 12px; border-top-right-radius: 12px; font-size: 12px; font-weight: bold;
+        }
+        
+        #audio-toggle {
+            background: #22263f; border: 1px solid #ff007f; color: #ff007f;
+            padding: 4px 10px; font-size: 11px; border-radius: 4px; cursor: pointer; font-weight: bold;
+        }
+        #audio-toggle.on { border-color: #00ff66; color: #00ff66; }
+
+        #commentary-box {
+            width: 100%; background: #1b1e30; border: 2px solid #00f0ff; padding: 6px 12px;
+            font-style: italic; font-size: 12px; color: #00f0ff; text-align: center; min-height: 32px;
+            display: flex; align-items: center; justify-content: center; margin-top: 4px; border-radius: 6px;
+        }
+
+        #mobile-controls { display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 10px 5px; }
+        .dpad { display: grid; grid-template-columns: repeat(3, 44px); grid-template-rows: repeat(3, 44px); gap: 4px; }
+        .dpad-btn { background: #22263f; border: 2px solid #444b7c; border-radius: 6px; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        .dpad-btn:active { background: #00f0ff; color: #000; }
+        #btn-shoot { width: 80px; height: 80px; border-radius: 50%; background: #ff0055; border: 3px solid #ff558f; color: white; font-weight: bold; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 10px rgba(255, 0, 85, 0.4); }
+    </style>
+</head>
+<body>
+
+    <div id="game-wrapper">
+        <div id="scoreboard">
+            <div id="team-home-ui" style="color: #00f0ff;">KENYA: <span id="home-score">0</span></div>
+            <div><button id="audio-toggle">🎵 Music: OFF</button></div>
+            <div id="team-away-ui" style="color: #ff0055;"><span id="away-score">0</span> :BOT</div>
+        </div>
+
+        <div id="canvas-container">
+            <div id="menu-screen">
+                <h1 id="menu-headline">Pro Club Football Studio</h1>
+                
+                <div class="tab-bar">
+                    <div class="tab-btn active" onclick="switchTab('teams')">Teams</div>
+                    <div class="tab-btn" onclick="switchTab('managers')">Managers</div>
+                    <div class="tab-btn" onclick="switchTab('commentators')">Commentary</div>
+                    <div class="tab-btn" onclick="switchTab('songs')">World Cup Music</div>
+                </div>
+
+                <!-- TEAMS VIEW -->
+                <div id="panel-teams" class="view-panel active">
+                    <div class="item-grid" id="grid-teams"></div>
+                </div>
+
+                <!-- MANAGERS VIEW -->
+                <div id="panel-managers" class="view-panel">
+                    <div class="item-grid" id="grid-managers"></div>
+                </div>
+
+                <!-- COMMENTARY VIEW -->
+                <div id="panel-commentators" class="view-panel">
+                    <div class="item-grid" id="grid-commentators"></div>
+                </div>
+
+                <!-- NEW: SONGS SHOP VIEW -->
+                <div id="panel-songs" class="view-panel">
+                    <div class="item-grid" id="grid-songs"></div>
+                </div>
+
+                <div class="bottom-ui">
+                    <div class="currency-box" id="wallet-ui">0 💰</div>
+                    <div class="action-btns">
+                        <button class="game-btn" id="buy-btn">Unlock Item</button>
+                        <button class="game-btn" id="kickoff-btn">Match Kickoff</button>
+                    </div>
+                </div>
+            </div>
+            
+            <canvas id="pitchCanvas" width="800" height="500"></canvas>
+        </div>
+
+        <div id="commentary-box">🎤 Turn Music ON up top to play synthesised stadium beats!</div>
+
+        <div id="mobile-controls">
+            <div class="dpad">
+                <div></div><div class="dpad-btn" id="pad-up">▲</div><div></div>
+                <div class="dpad-btn" id="pad-left">◀</div><div style="background:transparent;"></div><div class="dpad-btn" id="pad-right">▶</div>
+                <div></div><div class="dpad-btn" id="pad-down">▼</div><div></div>
+            </div>
+            <div id="btn-shoot">SHOOT</div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('pitchCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        const menuScreen = document.getElementById('menu-screen');
+        const kickoffBtn = document.getElementById('kickoff-btn');
+        const buyBtn = document.getElementById('buy-btn');
+        const walletUi = document.getElementById('wallet-ui');
+        const menuHeadline = document.getElementById('menu-headline');
+        const commentaryBox = document.getElementById('commentary-box');
+        const audioToggleBtn = document.getElementById('audio-toggle');
+        
+        let userCoins = parseInt(localStorage.getItem('fpro_coins')) || 200; 
+        let currentLvl = parseInt(localStorage.getItem('fpro_level')) || 1;
+        let gameActive = false;
+        let activeTab = 'teams';
+        let scoreHome = 0, scoreAway = 0;
+
+        let selectedTeamIdx = 0, selectedManagerIdx = 0, selectedCommIdx = 0, selectedSongIdx = 0;
+        let equippedTeamIdx = 0, equippedManagerIdx = 0, equippedCommIdx = 0, equippedSongIdx = 0;
+
+        // Assets Matrix
+        const teamsDB = [
+            { name: 'Kenya Stars', initial: '🇰🇪', color: '#00f0ff', speed: 5.0, power: 12, price: 0, owned: true },
+            { name: 'Nigeria FC', initial: '🇳🇬', color: '#00ff66', speed: 5.8, power: 13, price: 100, owned: false },
+            { name: 'Arsenal Blue', initial: '🔴', color: '#ff3333', speed: 6.2, power: 15, price: 200, owned: false }
+        ];
+
+        const managersDB = [
+            { name: 'Local Coach', desc: 'No special buffs applied', buff: 'None', price: 0, owned: true },
+            { name: 'Pep Guardiola', desc: '+1.0 Dribble Pace Speed', buff: 'speed', amount: 1.0, price: 150, owned: false }
+        ];
+
+        const commentatorsDB = [
+
+        
