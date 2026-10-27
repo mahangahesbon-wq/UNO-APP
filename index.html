@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#00ff66" />
+  <meta name="description" content="UNO football striker game" />
+  <title>UNO_APP</title>
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="icon" href="./icon.svg" type="image/svg+xml" />
+  <style>
+    :root {
+      --bg: #0b0c10;
+      --panel: #111424;
+      --accent: #00ff66;
+      --accent-2: #00f0ff;
+      --danger: #ff0055;
+      --gold: #ffb700;
+      --text: #ffffff;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: radial-gradient(circle at top, #16213d, var(--bg) 45%);
+      color: var(--text);
+      font-family: 'Segoe UI', Roboto, sans-serif;
+      padding: 16px;
+    }
+
+    .app {
+      width: min(100%, 860px);
+      background: linear-gradient(135deg, var(--panel), #06070d);
+      border: 3px solid var(--accent);
+      border-radius: 18px;
+      box-shadow: 0 0 28px rgba(0, 255, 102, 0.2);
+      overflow: hidden;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 18px;
+      background: rgba(22, 25, 42, 0.9);
+      border-bottom: 2px solid rgba(255,255,255,0.08);
+      font-weight: 700;
+    }
+
+    .score {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      font-size: 1rem;
+    }
+
+    .score strong {
+      color: var(--accent-2);
+    }
+
+    .score span {
+      color: var(--danger);
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    button {
+      border: none;
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.15s ease;
+    }
+
+    button:hover { transform: translateY(-1px); }
+
+    #startBtn {
+      background: var(--accent);
+      color: #08110d;
+    }
+
+    #toggleAudio {
+      background: #1e1f38;
+      color: var(--gold);
+      border: 1px solid var(--gold);
+    }
+
+    .game-shell {
+      padding: 12px;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      max-width: 100%;
+      aspect-ratio: 16 / 10;
+      border-radius: 12px;
+      background: linear-gradient(#0d4d2e, #0d762f 60%, #0d4d2e);
+      border: 2px solid rgba(255,255,255,0.1);
+    }
+
+    .status {
+      margin-top: 12px;
+      background: rgba(27, 30, 48, 0.95);
+      border: 2px solid var(--accent-2);
+      border-radius: 8px;
+      padding: 10px 12px;
+      text-align: center;
+      color: var(--accent-2);
+      font-style: italic;
+      min-height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .install-banner {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      display: none;
+      z-index: 99;
+    }
+
+    .install-banner.show {
+      display: block;
+    }
+
+    #installBtn {
+      background: var(--gold);
+      color: #1d1200;
+      box-shadow: 0 8px 22px rgba(255, 183, 0, 0.4);
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="topbar">
+      <div class="score"><strong>KENYA</strong> <span id="homeScore">0</span></div>
+      <div class="controls">
+        <button id="toggleAudio" type="button">🎵 Music: OFF</button>
+        <button id="startBtn" type="button">Match Kickoff</button>
+      </div>
+      <div class="score"><span id="awayScore">0</span> <strong>BOT</strong></div>
+    </div>
+
+    <div class="game-shell">
+      <canvas id="pitchCanvas" width="800" height="500" aria-label="UNO football game area"></canvas>
+      <div id="statusText" class="status">🎤 Ready for kickoff. Tap install to save this app.</div>
+    </div>
+  </div>
+
+  <div id="installBanner" class="install-banner">
+    <button id="installBtn" type="button">Install App</button>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('pitchCanvas');
+    const ctx = canvas.getContext('2d');
+    const statusText = document.getElementById('statusText');
+    const homeScoreEl = document.getElementById('homeScore');
+    const awayScoreEl = document.getElementById('awayScore');
+    const startBtn = document.getElementById('startBtn');
+    const toggleAudioBtn = document.getElementById('toggleAudio');
+    const installBanner = document.getElementById('installBanner');
+    const installBtn = document.getElementById('installBtn');
+
+    let scoreHome = Number(localStorage.getItem('uno_home_score')) || 0;
+    let scoreAway = Number(localStorage.getItem('uno_away_score')) || 0;
+    let musicOn = localStorage.getItem('uno_music') === 'on';
+    let gameRunning = false;
+    let ballX = canvas.width / 2;
+    let ballY = canvas.height / 2;
+    let ballVX = 2.4;
+    let ballVY = 1.8;
+    let playerX = 100;
+    let playerY = canvas.height / 2;
+    let keys = {};
+    let installPrompt = null;
+
+    function renderScore() {
+      homeScoreEl.textContent = scoreHome;
+      awayScoreEl.textContent = scoreAway;
+    }
+
+    function setStatus(message) {
+      statusText.textContent = message;
+    }
+
+    function drawField() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#0d4d2e';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.strokeStyle = 'rgba(255,255,255,0.8)';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40);
+      ctx.beginPath();
+      ctx.moveTo(canvas.width / 2, 20);
+      ctx.lineTo(canvas.width / 2, canvas.height - 20);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(canvas.width / 2, canvas.height / 2, 70, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(canvas.width / 2, canvas.height / 2, 8, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffffff';
+      ctx.fill();
+
+      ctx.fillStyle = '#eaf7ff';
+      ctx.fillRect(20, 150, 60, 200);
+      ctx.fillRect(canvas.width - 80, 150, 60, 200);
+
+      ctx.fillStyle = '#f4f5f7';
+      ctx.fillRect(20, 210, 20, 80);
+      ctx.fillRect(canvas.width - 40, 210, 20, 80);
+    }
+
+    function drawPlayer() {
+      ctx.fillStyle = '#00f0ff';
+      ctx.beginPath();
+      ctx.arc(playerX, playerY, 16, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(playerX, playerY + 16);
+      ctx.lineTo(playerX + 18, playerY + 38);
+      ctx.stroke();
+    }
+
+    function drawBall() {
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(ballX, ballY, 12, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#ff0055';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+    }
+
+    function updateGame() {
+      if (!gameRunning) return;
+
+      if (keys.ArrowUp || keys.w) playerY -= 4;
+      if (keys.ArrowDown || keys.s) playerY += 4;
+      if (keys.ArrowLeft || keys.a) playerX -= 4;
+      if (keys.ArrowRight || keys.d) playerX += 4;
+
+      playerX = Math.max(30, Math.min(canvas.width - 30, playerX));
+      playerY = Math.max(30, Math.min(canvas.height - 30, playerY));
+
+      ballX += ballVX;
+      ballY += ballVY;
+
+      if (ballY <= 20 || ballY >= canvas.height - 20) ballVY *= -1;
+      if (ballX <= 20 || ballX >= canvas.width - 20) {
+        if (ballX <= 20) {
+          scoreAway += 1;
+          setStatus('🎉 Bot scores!');
+        } else {
+          scoreHome += 1;
+          setStatus('⚽ Kenya scores!');
+        }
+        localStorage.setItem('uno_home_score', scoreHome);
+        localStorage.setItem('uno_away_score', scoreAway);
+        renderScore();
+        ballX = canvas.width / 2;
+        ballY = canvas.height / 2;
+        ballVX = (Math.random() > 0.5 ? 1 : -1) * (2.4 + Math.random() * 1.2);
+        ballVY = (Math.random() > 0.5 ? 1 : -1) * (1.5 + Math.random() * 1.5);
+      }
+
+      const dx = ballX - playerX;
+      const dy = ballY - playerY;
+      const dist = Math.hypot(dx, dy);
+      if (dist < 30) {
+        ballVX = Math.abs(ballVX) * (dx > 0 ? 1 : -1);
+        ballVY = Math.abs(ballVY) * (dy > 0 ? 1 : -1);
+      }
+
+      drawField();
+      drawPlayer();
+      drawBall();
+    }
+
+    function loop() {
+      updateGame();
+      requestAnimationFrame(loop);
+    }
+
+    startBtn.addEventListener('click', () => {
+      gameRunning = !gameRunning;
+      if (gameRunning) {
+        setStatus('🚀 Kickoff! The match is live.');
+        startBtn.textContent = 'Pause Match';
+      } else {
+        setStatus('⏸️ Match paused. Tap kickoff when ready.');
+        startBtn.textContent = 'Match Kickoff';
+      }
+    });
+
+    toggleAudioBtn.addEventListener('click', () => {
+      musicOn = !musicOn;
+      localStorage.setItem('uno_music', musicOn ? 'on' : 'off');
+      toggleAudioBtn.textContent = musicOn ? '🎵 Music: ON' : '🎵 Music: OFF';
+      setStatus(musicOn ? '🎧 Stadium music is on.' : '🔇 Music is off.');
+    });
+
+    document.addEventListener('keydown', (event) => {
+      keys[event.key] = true;
+    });
+
+    document.addEventListener('keyup', (event) => {
+      keys[event.key] = false;
+    });
+
+    renderScore();
+    drawField();
+    drawPlayer();
+    drawBall();
+    loop();
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(() => {
+          setStatus('⚠️ Service worker registration failed; app still works in browser mode.');
+        });
+      });
+    }
+
+    window.addEventListener('beforeinstallprompt', (event) => {
+      event.preventDefault();
+      installPrompt = event;
+      installBanner.classList.add('show');
+    });
+
+    installBtn.addEventListener('click', async () => {
+      if (!installPrompt) {
+        setStatus('📲 Install is not available in this browser yet.');
+        return;
+      }
+      installPrompt.prompt();
+      await installPrompt.userChoice;
+      installBanner.classList.remove('show');
+      installPrompt = null;
+    });
+  </script>
+</body>
+</html>
