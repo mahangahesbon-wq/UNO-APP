@@ -8,6 +8,7 @@
   <title>UNO_APP</title>
   <link rel="manifest" href="./manifest.json" />
   <link rel="icon" href="./icon.svg" type="image/svg+xml" />
+  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
   <style>
     :root {
       --bg: #0b0c10;
@@ -17,110 +18,233 @@
       --danger: #ff0055;
       --gold: #ffb700;
       --text: #ffffff;
+      --dark: #06110d;
     }
 
     * { box-sizing: border-box; }
 
-    body {
+    html, body {
       margin: 0;
       min-height: 100vh;
-      display: grid;
-      place-items: center;
-      background: radial-gradient(circle at top, #16213d, var(--bg) 45%);
+      background: radial-gradient(circle at top, #16213d, var(--bg) 46%);
       color: var(--text);
       font-family: 'Segoe UI', Roboto, sans-serif;
+    }
+
+    body {
+      display: grid;
+      place-items: center;
       padding: 16px;
     }
 
     .app {
-      width: min(100%, 860px);
+      width: min(100%, 900px);
       background: linear-gradient(135deg, var(--panel), #06070d);
       border: 3px solid var(--accent);
-      border-radius: 18px;
-      box-shadow: 0 0 28px rgba(0, 255, 102, 0.2);
+      border-radius: 20px;
+      box-shadow: 0 0 28px rgba(0, 255, 102, 0.25);
       overflow: hidden;
     }
 
     .topbar {
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      padding: 12px 18px;
-      background: rgba(22, 25, 42, 0.9);
+      justify-content: space-between;
+      padding: 14px 18px;
+      background: rgba(18, 21, 35, 0.95);
       border-bottom: 2px solid rgba(255,255,255,0.08);
+      gap: 12px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
       font-weight: 700;
+      min-width: 120px;
+    }
+
+    .brand span:first-child {
+      color: var(--accent);
     }
 
     .score {
       display: flex;
-      gap: 12px;
       align-items: center;
-      font-size: 1rem;
+      gap: 12px;
+      font-weight: 800;
+      white-space: nowrap;
     }
 
     .score strong {
       color: var(--accent-2);
     }
 
-    .score span {
+    .score .away {
       color: var(--danger);
     }
 
     .controls {
       display: flex;
       align-items: center;
-      gap: 12px;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
     }
 
     button {
       border: none;
-      border-radius: 8px;
+      border-radius: 9px;
       padding: 10px 16px;
-      font-weight: 700;
+      font-size: 0.95rem;
+      font-weight: 800;
       cursor: pointer;
       transition: transform 0.15s ease;
     }
 
     button:hover { transform: translateY(-1px); }
 
-    #startBtn {
-      background: var(--accent);
-      color: #08110d;
-    }
-
+    #startBtn { background: var(--accent); color: #07150d; }
+    #resetBtn { background: #2f385a; color: white; }
     #toggleAudio {
       background: #1e1f38;
       color: var(--gold);
       border: 1px solid var(--gold);
     }
 
-    .game-shell {
-      padding: 12px;
+    .multiplayer-panel {
+      padding: 10px 14px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
     }
+
+    .multiplayer-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .multiplayer-row input {
+      min-width: 170px;
+      flex: 1;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid #3a446c;
+      background: rgba(18, 21, 35, 0.9);
+      color: white;
+      outline: none;
+    }
+
+    .multiplayer-row input::placeholder {
+      color: #9aa4d2;
+    }
+
+    #hostBtn {
+      background: #00c6ff;
+      color: #051826;
+    }
+
+    #joinBtn {
+      background: #ffb700;
+      color: #1d1200;
+    }
+
+    #connectBtn {
+      background: #17d673;
+      color: #052b17;
+    }
+
+    #copyCodeBtn {
+      background: #3d4a7a;
+      color: white;
+    }
+
+    #connectionStatus {
+      font-size: 0.9rem;
+      color: #dfe7ff;
+      min-height: 20px;
+    }
+
+    .stats {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 18px;
+      flex-wrap: wrap;
+      color: #d5d8e9;
+      font-size: 0.9rem;
+      font-weight: 700;
+      padding: 8px 14px 0;
+    }
+
+    .game-shell { padding: 14px; }
 
     canvas {
       display: block;
       width: 100%;
       max-width: 100%;
       aspect-ratio: 16 / 10;
-      border-radius: 12px;
+      border-radius: 14px;
       background: linear-gradient(#0d4d2e, #0d762f 60%, #0d4d2e);
-      border: 2px solid rgba(255,255,255,0.1);
+      border: 2px solid rgba(255,255,255,0.12);
     }
 
     .status {
       margin-top: 12px;
-      background: rgba(27, 30, 48, 0.95);
+      min-height: 55px;
+      background: rgba(27, 30, 48, 0.96);
       border: 2px solid var(--accent-2);
-      border-radius: 8px;
+      border-radius: 10px;
       padding: 10px 12px;
       text-align: center;
       color: var(--accent-2);
       font-style: italic;
-      min-height: 52px;
       display: flex;
       align-items: center;
       justify-content: center;
+      line-height: 1.4;
+    }
+
+    .touch-controls {
+      display: none;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+
+    .touch-pad {
+      display: grid;
+      grid-template-columns: repeat(3, 48px);
+      gap: 6px;
+    }
+
+    .touch-btn {
+      width: 48px;
+      height: 48px;
+      background: #242a46;
+      border: 2px solid #5374c7;
+      color: white;
+      font-size: 1.1rem;
+      border-radius: 10px;
+      padding: 0;
+      display: grid;
+      place-items: center;
+      user-select: none;
+    }
+
+    #shootBtn {
+      width: 92px;
+      height: 92px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--danger), #ff6b7a);
+      border: 3px solid rgba(255,255,255,0.3);
+      box-shadow: 0 0 24px rgba(255, 0, 85, 0.35);
+      color: white;
+      font-weight: 800;
+      font-size: 1rem;
     }
 
     .install-banner {
@@ -131,31 +255,67 @@
       z-index: 99;
     }
 
-    .install-banner.show {
-      display: block;
-    }
+    .install-banner.show { display: block; }
 
     #installBtn {
       background: var(--gold);
       color: #1d1200;
       box-shadow: 0 8px 22px rgba(255, 183, 0, 0.4);
     }
+
+    @media (max-width: 720px) {
+      .topbar { flex-wrap: wrap; justify-content: center; }
+      .brand { min-width: 0; }
+      .touch-controls { display: flex; }
+    }
   </style>
 </head>
 <body>
   <div class="app">
     <div class="topbar">
-      <div class="score"><strong>KENYA</strong> <span id="homeScore">0</span></div>
+      <div class="brand"><span>UNO</span> <span>FOOTBALL</span></div>
+      <div class="score">
+        <span><strong>KENYA</strong> <span id="homeScore">0</span></span>
+        <span class="away"><span id="awayScore">0</span> <strong>BOT</strong></span>
+      </div>
       <div class="controls">
         <button id="toggleAudio" type="button">🎵 Music: OFF</button>
         <button id="startBtn" type="button">Match Kickoff</button>
+        <button id="resetBtn" type="button">Reset</button>
       </div>
-      <div class="score"><span id="awayScore">0</span> <strong>BOT</strong></div>
+    </div>
+
+    <div class="multiplayer-panel">
+      <div class="multiplayer-row">
+        <button id="hostBtn" type="button">Host Match</button>
+        <button id="joinBtn" type="button">Join Match</button>
+        <input id="joinCode" type="text" placeholder="Enter room code" maxlength="40" />
+        <button id="connectBtn" type="button">Connect</button>
+        <button id="copyCodeBtn" type="button">Copy Code</button>
+      </div>
+      <div id="connectionStatus">Offline mode: local match only</div>
+    </div>
+
+    <div class="stats">
+      <div>Clock: <span id="timerText">90</span>s</div>
+      <div>Difficulty: <span id="difficultyText">Normal</span></div>
     </div>
 
     <div class="game-shell">
       <canvas id="pitchCanvas" width="800" height="500" aria-label="UNO football game area"></canvas>
-      <div id="statusText" class="status">🎤 Ready for kickoff. Tap install to save this app.</div>
+      <div id="statusText" class="status">🎤 Ready for kickoff. Use arrow keys or the on-screen controls to attack.</div>
+    </div>
+
+    <div class="touch-controls">
+      <div class="touch-pad">
+        <div></div>
+        <button class="touch-btn" data-key="ArrowUp">▲</button>
+        <div></div>
+        <button class="touch-btn" data-key="ArrowLeft">◀</button>
+        <button class="touch-btn" data-key="ArrowDown">▼</button>
+        <button class="touch-btn" data-key="ArrowRight">▶</button>
+      </div>
+      <button id="shootBtn" type="button">SHOOT</button>
     </div>
   </div>
 
@@ -166,172 +326,588 @@
   <script>
     const canvas = document.getElementById('pitchCanvas');
     const ctx = canvas.getContext('2d');
+
     const statusText = document.getElementById('statusText');
     const homeScoreEl = document.getElementById('homeScore');
     const awayScoreEl = document.getElementById('awayScore');
+    const timerText = document.getElementById('timerText');
+    const difficultyText = document.getElementById('difficultyText');
     const startBtn = document.getElementById('startBtn');
+    const resetBtn = document.getElementById('resetBtn');
     const toggleAudioBtn = document.getElementById('toggleAudio');
     const installBanner = document.getElementById('installBanner');
     const installBtn = document.getElementById('installBtn');
+    const shootBtn = document.getElementById('shootBtn');
+    const connectionStatusEl = document.getElementById('connectionStatus');
+    const joinCodeInput = document.getElementById('joinCode');
+    const hostBtn = document.getElementById('hostBtn');
+    const joinBtn = document.getElementById('joinBtn');
+    const connectBtn = document.getElementById('connectBtn');
+    const copyCodeBtn = document.getElementById('copyCodeBtn');
 
-    let scoreHome = Number(localStorage.getItem('uno_home_score')) || 0;
-    let scoreAway = Number(localStorage.getItem('uno_away_score')) || 0;
-    let musicOn = localStorage.getItem('uno_music') === 'on';
-    let gameRunning = false;
-    let ballX = canvas.width / 2;
-    let ballY = canvas.height / 2;
-    let ballVX = 2.4;
-    let ballVY = 1.8;
-    let playerX = 100;
-    let playerY = canvas.height / 2;
-    let keys = {};
-    let installPrompt = null;
+    const FIELD = { width: canvas.width, height: canvas.height };
+    const keys = {};
 
-    function renderScore() {
-      homeScoreEl.textContent = scoreHome;
-      awayScoreEl.textContent = scoreAway;
+    const state = {
+      running: false,
+      timer: 90,
+      difficulty: 1,
+      homeScore: 0,
+      awayScore: 0,
+      lastTimestamp: 0,
+      musicOn: localStorage.getItem('uno_music') === 'on',
+      installPrompt: null,
+      winner: null,
+      remoteMode: false,
+      peer: null,
+      conn: null,
+      roomCode: null,
+      role: 'solo',
+      syncedAt: 0
+    };
+
+    const player = {
+      x: 110,
+      y: FIELD.height / 2,
+      radius: 16,
+      speed: 5.3,
+      color: '#00f0ff'
+    };
+
+    const remotePlayer = {
+      x: FIELD.width - 110,
+      y: FIELD.height / 2,
+      radius: 16,
+      speed: 5.3,
+      color: '#ff0055'
+    };
+
+    const opponent = {
+      x: FIELD.width - 110,
+      y: FIELD.height / 2,
+      radius: 16,
+      speed: 3.6,
+      color: '#ff0055'
+    };
+
+    const ball = {
+      x: FIELD.width / 2,
+      y: FIELD.height / 2,
+      radius: 12,
+      vx: 0,
+      vy: 0
+    };
+
+    function setConnectionStatus(msg) {
+      connectionStatusEl.textContent = msg;
     }
 
     function setStatus(message) {
       statusText.textContent = message;
     }
 
+    function renderScore() {
+      homeScoreEl.textContent = state.homeScore;
+      awayScoreEl.textContent = state.awayScore;
+      timerText.textContent = Math.max(0, Math.ceil(state.timer));
+      const difficultyLabel = state.difficulty >= 2 ? 'Hard' : state.difficulty >= 1.5 ? 'Medium' : 'Normal';
+      difficultyText.textContent = difficultyLabel;
+    }
+
+    function resetBall() {
+      ball.x = FIELD.width / 2;
+      ball.y = FIELD.height / 2;
+      ball.vx = (Math.random() > 0.5 ? 1 : -1) * (2.2 + Math.random() * 1.8);
+      ball.vy = (Math.random() > 0.5 ? 1 : -1) * (1.8 + Math.random() * 1.6);
+    }
+
+    function resetPositions() {
+      player.x = 110;
+      player.y = FIELD.height / 2;
+      opponent.x = FIELD.width - 110;
+      opponent.y = FIELD.height / 2;
+      remotePlayer.x = FIELD.width - 110;
+      remotePlayer.y = FIELD.height / 2;
+      resetBall();
+    }
+
+    function resetGame() {
+      state.running = false;
+      state.timer = 90;
+      state.homeScore = 0;
+      state.awayScore = 0;
+      state.winner = null;
+      startBtn.textContent = 'Match Kickoff';
+      setStatus('🎤 Ready for kickoff. Use arrow keys or the on-screen controls to attack.');
+      renderScore();
+      resetPositions();
+      sendPeerMessage({ type: 'reset' });
+    }
+
+    function startMatch() {
+      if (state.winner) {
+        state.winner = null;
+      }
+      state.running = !state.running;
+      if (state.running) {
+        setStatus('🚀 Kickoff! Press space or tap SHOOT to strike.');
+        startBtn.textContent = 'Pause Match';
+        sendPeerMessage({ type: 'start' });
+      } else {
+        setStatus('⏸️ Match paused. Press kickoff when ready.');
+        startBtn.textContent = 'Match Kickoff';
+      }
+    }
+
+    function updateDifficulty() {
+      const elapsed = 90 - state.timer;
+      state.difficulty = 1 + Math.min(2.5, elapsed / 36);
+      opponent.speed = 3.5 + state.difficulty * 0.8;
+    }
+
+    function clamp(value, min, max) {
+      return Math.min(Math.max(value, min), max);
+    }
+
+    function movePlayer() {
+      let dx = 0;
+      let dy = 0;
+
+      if (keys.ArrowUp || keys.w) dy -= 1;
+      if (keys.ArrowDown || keys.s) dy += 1;
+      if (keys.ArrowLeft || keys.a) dx -= 1;
+      if (keys.ArrowRight || keys.d) dx += 1;
+
+      if (dx !== 0 || dy !== 0) {
+        const length = Math.hypot(dx, dy) || 1;
+        player.x += (dx / length) * player.speed;
+        player.y += (dy / length) * player.speed;
+      }
+
+      player.x = clamp(player.x, 28, FIELD.width - 28);
+      player.y = clamp(player.y, 28, FIELD.height - 28);
+    }
+
+    function moveOpponentAI() {
+      const targetX = player.x < FIELD.width / 2 ? FIELD.width * 0.65 : FIELD.width * 0.75;
+      const targetY = player.y;
+      const dx = targetX - opponent.x;
+      const dy = targetY - opponent.y;
+      const dist = Math.hypot(dx, dy) || 1;
+
+      if (dist > 10) {
+        opponent.x += (dx / dist) * opponent.speed;
+        opponent.y += (dy / dist) * opponent.speed;
+      }
+
+      opponent.x = clamp(opponent.x, FIELD.width * 0.55, FIELD.width - 28);
+      opponent.y = clamp(opponent.y, 28, FIELD.height - 28);
+    }
+
+    function sendPeerMessage(payload) {
+      if (state.conn && state.conn.open) {
+        state.conn.send(payload);
+      }
+    }
+
+    function handlePeerData(data) {
+      if (!data || !data.type) return;
+
+      if (data.type === 'player') {
+        remotePlayer.x = data.x;
+        remotePlayer.y = data.y;
+        if (data.shoot) {
+          shootBallForRemote();
+        }
+      }
+
+      if (data.type === 'score') {
+        state.homeScore = data.homeScore;
+        state.awayScore = data.awayScore;
+        renderScore();
+      }
+
+      if (data.type === 'reset') {
+        resetGame();
+      }
+
+      if (data.type === 'start') {
+        if (!state.running) startMatch();
+      }
+
+      if (data.type === 'shoot') {
+        shootBallForRemote();
+      }
+    }
+
+    function shootBall(strengthBoost = 1) {
+      const dx = ball.x - player.x;
+      const dy = ball.y - player.y;
+      const dist = Math.hypot(dx, dy) || 1;
+
+      if (dist < player.radius + ball.radius + 25) {
+        const power = 6.8 * strengthBoost;
+        ball.vx = (dx / dist) * power + 1.2;
+        ball.vy = (dy / dist) * power;
+        sendPeerMessage({ type: 'shoot' });
+      }
+    }
+
+    function shootBallForRemote() {
+      const targetX = player.x + 40;
+      const targetY = ball.y;
+      ball.vx = (targetX - ball.x) * 0.06 + 4.2;
+      ball.vy = (targetY - ball.y) * 0.06;
+    }
+
+    function handleBallGoal() {
+      if (ball.x - ball.radius <= 0) {
+        state.awayScore += 1;
+        setStatus('🎉 Bot scores! The keeper is beaten.');
+        sendPeerMessage({ type: 'score', homeScore: state.homeScore, awayScore: state.awayScore });
+        resetBall();
+      }
+
+      if (ball.x + ball.radius >= FIELD.width) {
+        state.homeScore += 1;
+        setStatus('⚽ Kenya scores! Brilliant finish!');
+        sendPeerMessage({ type: 'score', homeScore: state.homeScore, awayScore: state.awayScore });
+        resetBall();
+      }
+
+      renderScore();
+    }
+
+    function updateBall() {
+      ball.x += ball.vx;
+      ball.y += ball.vy;
+
+      if (ball.y <= ball.radius || ball.y >= FIELD.height - ball.radius) {
+        ball.vy *= -1;
+      }
+
+      if (ball.x <= ball.radius || ball.x >= FIELD.width - ball.radius) {
+        handleBallGoal();
+      }
+
+      const pDx = ball.x - player.x;
+      const pDy = ball.y - player.y;
+      const pDist = Math.hypot(pDx, pDy);
+      if (pDist < player.radius + ball.radius) {
+        const angle = Math.atan2(pDy, pDx);
+        const impact = 1.4;
+        ball.vx = Math.cos(angle) * 7.5 * impact;
+        ball.vy = Math.sin(angle) * 7.5 * impact;
+      }
+
+      const oDx = ball.x - opponent.x;
+      const oDy = ball.y - opponent.y;
+      const oDist = Math.hypot(oDx, oDy);
+      if (oDist < opponent.radius + ball.radius) {
+        const angle = Math.atan2(oDy, oDx);
+        ball.vx = Math.cos(angle) * 7.2;
+        ball.vy = Math.sin(angle) * 7.2;
+      }
+
+      if (Math.random() < 0.015 && state.running && !state.remoteMode) {
+        const tdx = ball.x - opponent.x;
+        const tdy = ball.y - opponent.y;
+        if (Math.abs(tdx) < 140 && Math.abs(tdy) < 90) {
+          ball.vx += (ball.x < FIELD.width / 2 ? 1 : -1) * 0.15;
+        }
+      }
+    }
+
+    function updateRemotePlayer() {
+      if (!state.remoteMode || !state.conn || !state.conn.open) return;
+      if (performance.now() - state.syncedAt > 90) {
+        state.syncedAt = performance.now();
+        sendPeerMessage({
+          type: 'player',
+          x: player.x,
+          y: player.y,
+          shoot: keys[' '] || keys.Space
+        });
+      }
+    }
+
+    function updateMatch(delta) {
+      if (!state.running) return;
+
+      state.timer -= delta;
+      updateDifficulty();
+
+      if (state.timer <= 0) {
+        state.running = false;
+        state.timer = 0;
+        if (state.homeScore > state.awayScore) {
+          state.winner = 'KENYA';
+          setStatus('🏆 Full time: Kenya wins the match!');
+        } else if (state.awayScore > state.homeScore) {
+          state.winner = 'BOT';
+          setStatus('🏆 Full time: Bot wins the match.');
+        } else {
+          state.winner = 'DRAW';
+          setStatus('🤝 Full time: it ends level.');
+        }
+        startBtn.textContent = 'Play Again';
+      }
+
+      movePlayer();
+      if (!state.remoteMode) {
+        moveOpponentAI();
+      } else {
+        opponent.x = remotePlayer.x;
+        opponent.y = remotePlayer.y;
+        updateRemotePlayer();
+      }
+      updateBall();
+      renderScore();
+    }
+
     function drawField() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.clearRect(0, 0, FIELD.width, FIELD.height);
       ctx.fillStyle = '#0d4d2e';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillRect(0, 0, FIELD.width, FIELD.height);
 
-      ctx.strokeStyle = 'rgba(255,255,255,0.8)';
+      ctx.strokeStyle = 'rgba(255,255,255,0.85)';
       ctx.lineWidth = 3;
-      ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40);
+      ctx.strokeRect(20, 20, FIELD.width - 40, FIELD.height - 40);
+
       ctx.beginPath();
-      ctx.moveTo(canvas.width / 2, 20);
-      ctx.lineTo(canvas.width / 2, canvas.height - 20);
+      ctx.moveTo(FIELD.width / 2, 20);
+      ctx.lineTo(FIELD.width / 2, FIELD.height - 20);
       ctx.stroke();
 
       ctx.beginPath();
-      ctx.arc(canvas.width / 2, canvas.height / 2, 70, 0, Math.PI * 2);
+      ctx.arc(FIELD.width / 2, FIELD.height / 2, 70, 0, Math.PI * 2);
       ctx.stroke();
 
       ctx.beginPath();
-      ctx.arc(canvas.width / 2, canvas.height / 2, 8, 0, Math.PI * 2);
+      ctx.arc(FIELD.width / 2, FIELD.height / 2, 8, 0, Math.PI * 2);
       ctx.fillStyle = '#ffffff';
       ctx.fill();
 
-      ctx.fillStyle = '#eaf7ff';
+      ctx.fillStyle = '#edf7ff';
       ctx.fillRect(20, 150, 60, 200);
-      ctx.fillRect(canvas.width - 80, 150, 60, 200);
+      ctx.fillRect(FIELD.width - 80, 150, 60, 200);
 
       ctx.fillStyle = '#f4f5f7';
-      ctx.fillRect(20, 210, 20, 80);
-      ctx.fillRect(canvas.width - 40, 210, 20, 80);
+      ctx.fillRect(20, 210, 18, 80);
+      ctx.fillRect(FIELD.width - 38, 210, 18, 80);
+
+      ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+      ctx.beginPath();
+      ctx.moveTo(20, 18);
+      ctx.lineTo(20, FIELD.height - 18);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(FIELD.width - 20, 18);
+      ctx.lineTo(FIELD.width - 20, FIELD.height - 18);
+      ctx.stroke();
     }
 
-    function drawPlayer() {
-      ctx.fillStyle = '#00f0ff';
+    function drawPlayerSprite(x, y, color, label) {
+      ctx.fillStyle = color;
       ctx.beginPath();
-      ctx.arc(playerX, playerY, 16, 0, Math.PI * 2);
+      ctx.arc(x, y, 16, 0, Math.PI * 2);
       ctx.fill();
 
       ctx.strokeStyle = '#ffffff';
       ctx.lineWidth = 3;
       ctx.beginPath();
-      ctx.moveTo(playerX, playerY + 16);
-      ctx.lineTo(playerX + 18, playerY + 38);
+      ctx.moveTo(x, y + 16);
+      ctx.lineTo(x + (label === 'player' ? 18 : -18), y + 34);
       ctx.stroke();
     }
 
     function drawBall() {
       ctx.fillStyle = '#ffffff';
       ctx.beginPath();
-      ctx.arc(ballX, ballY, 12, 0, Math.PI * 2);
+      ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
       ctx.fill();
+
       ctx.strokeStyle = '#ff0055';
       ctx.lineWidth = 3;
       ctx.stroke();
     }
 
-    function updateGame() {
-      if (!gameRunning) return;
+    function drawCenterMessage() {
+      if (state.running) return;
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.28)';
+      ctx.fillRect(0, 0, FIELD.width, FIELD.height);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '700 26px Segoe UI';
+      ctx.textAlign = 'center';
+      ctx.fillText(state.winner ? 'MATCH OVER' : 'READY TO PLAY', FIELD.width / 2, FIELD.height / 2 - 10);
+      ctx.fillStyle = '#dfe7ff';
+      ctx.font = '600 18px Segoe UI';
+      ctx.fillText(state.winner ? `${state.winner} WINS` : 'Press Match Kickoff', FIELD.width / 2, FIELD.height / 2 + 22);
+    }
 
-      if (keys.ArrowUp || keys.w) playerY -= 4;
-      if (keys.ArrowDown || keys.s) playerY += 4;
-      if (keys.ArrowLeft || keys.a) playerX -= 4;
-      if (keys.ArrowRight || keys.d) playerX += 4;
-
-      playerX = Math.max(30, Math.min(canvas.width - 30, playerX));
-      playerY = Math.max(30, Math.min(canvas.height - 30, playerY));
-
-      ballX += ballVX;
-      ballY += ballVY;
-
-      if (ballY <= 20 || ballY >= canvas.height - 20) ballVY *= -1;
-      if (ballX <= 20 || ballX >= canvas.width - 20) {
-        if (ballX <= 20) {
-          scoreAway += 1;
-          setStatus('🎉 Bot scores!');
-        } else {
-          scoreHome += 1;
-          setStatus('⚽ Kenya scores!');
-        }
-        localStorage.setItem('uno_home_score', scoreHome);
-        localStorage.setItem('uno_away_score', scoreAway);
-        renderScore();
-        ballX = canvas.width / 2;
-        ballY = canvas.height / 2;
-        ballVX = (Math.random() > 0.5 ? 1 : -1) * (2.4 + Math.random() * 1.2);
-        ballVY = (Math.random() > 0.5 ? 1 : -1) * (1.5 + Math.random() * 1.5);
-      }
-
-      const dx = ballX - playerX;
-      const dy = ballY - playerY;
-      const dist = Math.hypot(dx, dy);
-      if (dist < 30) {
-        ballVX = Math.abs(ballVX) * (dx > 0 ? 1 : -1);
-        ballVY = Math.abs(ballVY) * (dy > 0 ? 1 : -1);
-      }
-
+    function render() {
       drawField();
-      drawPlayer();
+      drawPlayerSprite(player.x, player.y, player.color, 'player');
+      drawPlayerSprite(state.remoteMode ? remotePlayer.x : opponent.x, state.remoteMode ? remotePlayer.y : opponent.y, state.remoteMode ? '#ff0055' : opponent.color, 'bot');
       drawBall();
+      drawCenterMessage();
     }
 
-    function loop() {
-      updateGame();
-      requestAnimationFrame(loop);
+    function gameLoop(timestamp) {
+      const delta = Math.min((timestamp - state.lastTimestamp) / 1000 || 0.016, 0.033);
+      state.lastTimestamp = timestamp;
+      updateMatch(delta);
+      render();
+      requestAnimationFrame(gameLoop);
     }
+
+    function setupConnection(connection) {
+      state.conn = connection;
+      state.remoteMode = true;
+      state.role = connection.metadata && connection.metadata.role ? connection.metadata.role : 'guest';
+      setConnectionStatus(`Connected: ${state.role === 'host' ? 'Hosting room' : 'Joined room'} — ${state.roomCode || 'connected'}`);
+      setStatus('🎮 Remote match connected! You can now play with a friend.');
+
+      state.conn.on('data', (data) => {
+        handlePeerData(data);
+      });
+
+      state.conn.on('close', () => {
+        state.remoteMode = false;
+        state.conn = null;
+        setConnectionStatus('Disconnected: back to local match mode');
+        setStatus('🔌 Connection dropped. Back to solo play.');
+      });
+    }
+
+    function createPeer() {
+      if (!window.Peer) {
+        setConnectionStatus('PeerJS unavailable. Internet multiplayer is currently disabled.');
+        return;
+      }
+
+      if (state.peer) return;
+
+      state.peer = new Peer({
+        host: '0.peerjs.com',
+        port: 443,
+        secure: true,
+        path: '/' 
+      });
+
+      state.peer.on('open', (id) => {
+        state.roomCode = id;
+        state.role = 'host';
+        setConnectionStatus(`Room ready: ${id} — share this code with a friend`);
+        setStatus('🎮 Room created. Share the code and invite your family or friends.');
+      });
+
+      state.peer.on('connection', (conn) => {
+        setupConnection(conn);
+      });
+
+      state.peer.on('error', (err) => {
+        console.error(err);
+        setConnectionStatus(`Connection error: ${err.message}`);
+      });
+    }
+
+    hostBtn.addEventListener('click', () => {
+      createPeer();
+      if (state.peer && !state.conn) {
+        state.role = 'host';
+      }
+    });
+
+    joinBtn.addEventListener('click', () => {
+      state.role = 'guest';
+      createPeer();
+      setConnectionStatus('Join mode enabled — enter the host code and connect');
+    });
+
+    connectBtn.addEventListener('click', () => {
+      const code = joinCodeInput.value.trim();
+      if (!code) {
+        setConnectionStatus('Enter a room code first');
+        return;
+      }
+      if (!state.peer) createPeer();
+      const conn = state.peer.connect(code, { metadata: { role: 'guest' } });
+      setupConnection(conn);
+      state.roomCode = code;
+      setConnectionStatus(`Connecting to room: ${code}`);
+    });
+
+    copyCodeBtn.addEventListener('click', async () => {
+      if (!state.roomCode) {
+        setConnectionStatus('Create or join a room first');
+        return;
+      }
+
+      try {
+        await navigator.clipboard.writeText(state.roomCode);
+        setConnectionStatus(`Room code copied: ${state.roomCode}`);
+      } catch (err) {
+        setConnectionStatus(`Copy failed. Share this code manually: ${state.roomCode}`);
+      }
+    });
 
     startBtn.addEventListener('click', () => {
-      gameRunning = !gameRunning;
-      if (gameRunning) {
-        setStatus('🚀 Kickoff! The match is live.');
-        startBtn.textContent = 'Pause Match';
-      } else {
-        setStatus('⏸️ Match paused. Tap kickoff when ready.');
-        startBtn.textContent = 'Match Kickoff';
+      if (!state.running && state.timer === 0) {
+        state.timer = 90;
+        state.homeScore = 0;
+        state.awayScore = 0;
+        state.winner = null;
+        resetPositions();
+        renderScore();
       }
+      startMatch();
+    });
+
+    resetBtn.addEventListener('click', () => {
+      resetGame();
     });
 
     toggleAudioBtn.addEventListener('click', () => {
-      musicOn = !musicOn;
-      localStorage.setItem('uno_music', musicOn ? 'on' : 'off');
-      toggleAudioBtn.textContent = musicOn ? '🎵 Music: ON' : '🎵 Music: OFF';
-      setStatus(musicOn ? '🎧 Stadium music is on.' : '🔇 Music is off.');
+      state.musicOn = !state.musicOn;
+      localStorage.setItem('uno_music', state.musicOn ? 'on' : 'off');
+      toggleAudioBtn.textContent = state.musicOn ? '🎵 Music: ON' : '🎵 Music: OFF';
+      setStatus(state.musicOn ? '🎧 Stadium music is on.' : '🔇 Music is off.');
     });
 
     document.addEventListener('keydown', (event) => {
+      const key = event.key.length === 1 ? event.key.toLowerCase() : event.key;
+      keys[key] = true;
       keys[event.key] = true;
+
+      if (event.code === 'Space') {
+        event.preventDefault();
+        shootBall(1.25);
+      }
     });
 
     document.addEventListener('keyup', (event) => {
+      const key = event.key.length === 1 ? event.key.toLowerCase() : event.key;
+      keys[key] = false;
       keys[event.key] = false;
     });
 
-    renderScore();
-    drawField();
-    drawPlayer();
-    drawBall();
-    loop();
+    document.querySelectorAll('.touch-btn').forEach((btn) => {
+      const key = btn.dataset.key;
+      const setPress = (active) => {
+        if (active) keys[key] = true;
+        else keys[key] = false;
+      };
+
+      btn.addEventListener('pointerdown', () => setPress(true));
+      btn.addEventListener('pointerup', () => setPress(false));
+      btn.addEventListener('pointerleave', () => setPress(false));
+      btn.addEventListener('pointercancel', () => setPress(false));
+    });
+
+    shootBtn.addEventListener('click', () => {
+      shootBall(1.45);
+    });
 
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
@@ -343,20 +919,25 @@
 
     window.addEventListener('beforeinstallprompt', (event) => {
       event.preventDefault();
-      installPrompt = event;
+      state.installPrompt = event;
       installBanner.classList.add('show');
     });
 
     installBtn.addEventListener('click', async () => {
-      if (!installPrompt) {
+      if (!state.installPrompt) {
         setStatus('📲 Install is not available in this browser yet.');
         return;
       }
-      installPrompt.prompt();
-      await installPrompt.userChoice;
+      state.installPrompt.prompt();
+      await state.installPrompt.userChoice;
       installBanner.classList.remove('show');
-      installPrompt = null;
+      state.installPrompt = null;
     });
+
+    resetGame();
+    renderScore();
+    render();
+    requestAnimationFrame(gameLoop);
   </script>
 </body>
 </html>
